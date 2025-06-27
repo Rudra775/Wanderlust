@@ -8,6 +8,11 @@ const multer = require("multer")
 const {storage} = require("../cloudConfig.js")
 const upload = multer({storage})
 
+//Filter Route
+router.get("/filter/:id", wrapAsync(listingController.filter)); 
+
+router.get("/search", wrapAsync(listingController.search));
+
 router
     .route("/")
     // Index Route get /Listings for showing all cards
@@ -31,12 +36,6 @@ router
     .delete(isLoggedIn,isOwner,wrapAsync(listingController.destroyListing))
 
 // Edit 
-router.get("/:id/edit",isLoggedIn,isOwner,validateListing,wrapAsync(listingController.renderEditForm));
-
-
-//Filter Route
-router.get("/filter/:id", wrapAsync(listingController.filter)); 
-
-router.get("/search", wrapAsync(listingController.search));
+router.get("/:id/edit",isLoggedIn,isOwner,wrapAsync(listingController.renderEditForm));
 
 module.exports = router; 

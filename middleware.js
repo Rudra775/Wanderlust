@@ -27,26 +27,34 @@ module.exports.saveRedirectUrl=(req,res,next)=>{
     next();
 }
 
-module.exports.isOwner = async (req,res,next)=>{
-    let {id}= req.params;
+module.exports.isOwner = async (req, res, next) => {
+    let { id } = req.params;
     let listing = await Listing.findById(id);
-    if(!listing.owner.equals(res.locals.currUser._id)){
-        req.flash("error","You are not the owner of this listing");
-        return res.redirect(`/listings/${id}`)
+    // Use req.user or res.locals.currentUser
+    const userId = req.user ? req.user._id : null;
+    if (!userId || !listing.owner.equals(userId)) {
+        req.flash("error", "You are not the owner of this listing");
+        return res.redirect(`/listings/${id}`);
     }
     next();
-}
+};
 
-module.exports.isReviewAuthor = async (req,res,next)=>{
-    let { id,reviewId}= req.params;
+module.exports.isReviewAuthor = async (req, res, next) => {
+    let { id, reviewId } = req.params;
     let review = await Review.findById(reviewId);
-    if(!review.author.equals(res.locals.currUser._id)){
-        req.flash("error","You are not the author of this review");
-        return res.redirect(`/listings/${id}`)
+
+    if (!review) {
+        req.flash("error", "Review not found.");
+        return res.redirect(`/listings/${id}`);
+    }
+
+    const userId = req.user ? req.user._id : null;
+    if (!userId || !review.author.equals(userId)) {
+        req.flash("error", "You are not the author of this review");
+        return res.redirect(`/listings/${id}`);
     }
     next();
-}
-
+};
 
 module.exports.validateListing = (req,res,next)=>{
         // let result=listingSchema.validate(req.body);
@@ -61,15 +69,12 @@ module.exports.validateListing = (req,res,next)=>{
         }
 }
 
-module.exports.validateReview=(req,res,next)=>{
-        // let result=listingSchema.validate(req.body);
-        // console.log(result);
-        let {error}=reviewSchema.validate(req.body);
-        console.log(error);
-        if(error){
-            let errMsg=error.details.map((el)=>el.message).join(",")
-            throw new ExpressError(400,errMsg);
-        }else{
-            next();
-        }
-}
+module.exports.validateReview = (req, res, next) => {
+    const { error } = reviewSchema.validate(req.body);
+    if (error) {
+        const errMsg = error.details.map((el) => el.message).join(", ");
+        req.flash("error", errMsg);
+        return res.redirect(`/listings/${req.params.id}`);
+    }
+    next();
+};

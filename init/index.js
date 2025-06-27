@@ -4,9 +4,7 @@ const { Types }  = mongoose;
 const Listing    = require('../models/listing.js');
 const initData   = require('./data.js');
 
-const MONGODB_URI = "mongodb+srv://sharmarudra775:sharmarudra24@cluster0.iyba3bi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
-
+const MONGODB_URI = process.env.ATLASDB_URL;
 
 const categories = [
   'Trending', 'Rooms', 'Iconic Cities', 'Mountains', 'Castle',
@@ -14,7 +12,6 @@ const categories = [
 ];
 
 async function main() {
-  // Throw a readable error up-front if the URI is still missing
   if (!MONGODB_URI) {
     throw new Error('MongoDB connection string is undefined. Check .env → ATLASDB_URL');
   }

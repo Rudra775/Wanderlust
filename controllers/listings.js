@@ -13,33 +13,39 @@ module.exports.renderNewForm = (req, res) => {
 };
 
 module.exports.showListing = async (req, res, next) => {
-    let {id} = req.params;
+    let { id } = req.params;
     
     let listing = await Listing.findById(id)
         .populate({
-            path :"reviews",
+            path: "reviews",
             populate: {
-            path : "author"},
-        }) //populate is used for getting reviews data in show ejs
+                path: "author"
+            }
+        })
         .populate("owner");
-    listing = await Listing.findById(req.params.id).populate("owner");
 
     if (!listing) {
         req.flash("error", "Listing you requested for does not exist");
         return res.redirect("/listings");
     }
-    res.render("listings/show.ejs", { listing });
+
+    res.render("listings/show.ejs", { 
+        listing, 
+        mapToken: process.env.MAP_TOKEN,
+        currUser: req.user
+    });
 };
+
 
 module.exports.createListing = async (req, res, next) => {
   try {
-    // 1. Make sure user is logged in
+    //Make sure user is logged in
     if (!req.user) {
-      throw new ExpressError('Login required', 401);
+      // throw new ExpressError('Login required', 401);
       res.redirect("/signup");
     }
 
-    // 2. Geocode
+    //Geocode
     const geoRes = await geocodingClient.forwardGeocode({
       query: req.body.listing.location,
       limit: 1
@@ -49,7 +55,7 @@ module.exports.createListing = async (req, res, next) => {
       throw new ExpressError('Invalid location', 400);
     }
 
-    // 3. Build listing safely
+    //Build listing safely
     const listing = new Listing(req.body.listing);
     listing.owner = req.user._id;
     listing.geometry = geoRes.body.features[0].geometry;
@@ -68,9 +74,9 @@ module.exports.createListing = async (req, res, next) => {
   }
 };
 
-
 module.exports.renderEditForm = async (req, res) => {  
     let { id } = req.params;  
+    console.log(id);
     const listing = await Listing.findById(id);
 
     if (!listing) {
@@ -89,7 +95,7 @@ module.exports.updateListing = async (req, res) => {
         throw new ExpressError(400, "Send valid data for listing");
     }
 
-    let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+    let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing }, { runValidators: true, new: true });
     if (!listing) {
         req.flash("error", "Listing not found.");
         return res.redirect("/listings");
@@ -136,7 +142,7 @@ module.exports.search = async (req, res) => {
       res.redirect("/listings");
     }
   
-    // convert every word 1st latter capital and other small---------------
+    // convert every word 1st latter capital and other small
     let data = input.split("");
     let element = "";
     let flag = false;
@@ -188,8 +194,8 @@ module.exports.search = async (req, res) => {
         return;
       }
     }
-    const intValue = parseInt(element, 10); // 10 for decimal return - int ya NaN
-    const intDec = Number.isInteger(intValue); // check intValue is Number & Not Number return - true ya false
+    const intValue = parseInt(element, 10); // 10 for decimal return - int OR NaN
+    const intDec = Number.isInteger(intValue); // check intValue is Number & Not Number return - true OR false
   
     if (allListing.length == 0 && intDec) {
       allListing = await Listing.find({ price: { $lte: element } }).sort({

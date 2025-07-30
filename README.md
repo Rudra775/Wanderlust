@@ -44,8 +44,6 @@ Welcome to **Wanderlust**, a comprehensive full-stack web application inspired b
 
 ### Social Authentication
 - **Passport Local**: Local authentication strategy.
-- **Passport Facebook**: Facebook login integration.
-- **Passport Google OAuth 2.0**: Google OAuth 2.0 authentication.
 - **Passport Local Mongoose**: Simplifies integration of Mongoose with Passport for user authentication.
 
 ---
